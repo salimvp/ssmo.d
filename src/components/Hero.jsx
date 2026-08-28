@@ -27,14 +27,7 @@ export default function Hero({ settings = {} }) {
 
         {/* Main Headline */}
         <div className="space-y-3 max-w-4xl mx-auto">
-          <div
-            className="text-xl sm:text-2xl md:text-3xl font-poppins font-black tracking-[0.10em] text-accent-light uppercase drop-shadow-lg"
-            style={{
-              WebkitTextStroke: '1.5px rgba(45, 212, 191, 0.5)',
-              paintOrder: 'stroke fill',
-              textShadow: '0 0 2px rgba(45, 212, 191, 0.6), 0 0 4px rgba(45, 212, 191, 0.3)'
-            }}
-          >
+          <div className="text-base sm:text-lg md:text-xl font-poppins font-medium tracking-[0.14em] text-accent-light uppercase">
             Seethi Sahib Memorial Orphanage
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
