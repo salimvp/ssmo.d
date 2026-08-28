@@ -101,7 +101,7 @@ export default function GalleryPage() {
               to="/faculties"
               className="px-3 py-1.5 rounded-sm text-xs font-medium text-ink-light-secondary hover:text-white hover:bg-white/5 transition-colors"
             >
-              Faculties
+              Faculty and Staff
             </Link>
           </div>
 
@@ -153,7 +153,7 @@ export default function GalleryPage() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="block px-3 py-2 text-sm font-medium text-ink-light hover:text-white hover:bg-white/5 rounded-md transition-colors"
               >
-                Faculties
+                Faculty and Staff
               </Link>
               <Link
                 to="/"
@@ -178,7 +178,7 @@ export default function GalleryPage() {
             Campus Life & Photo Archive
           </h1>
           <p className="mt-3 text-sm sm:text-base text-ink-light-secondary max-w-xl">
-            A visual record of teacher trainees engaged in smart classroom sessions, micro-teaching labs, cultural events, and community outreach.
+            Browse our collection of campus life moments and institutional milestones.
           </p>
         </div>
       </section>
@@ -229,7 +229,7 @@ export default function GalleryPage() {
                     className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500 filter brightness-95"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-dark/80 via-dark/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-5 text-white">
+                  <div className="absolute inset-0 bg-gradient-to-t from-dark/80 via-dark/20 to-transparent flex flex-col justify-between p-5 text-white">
                     <div className="flex justify-between items-start">
                       <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-dark/70 px-2 py-0.5 rounded-sm backdrop-blur-sm text-accent-light">
                         {item.category}

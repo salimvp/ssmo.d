@@ -144,13 +144,13 @@ export default function ManageFaculties() {
       {/* Header */}
       <div className="pb-6 border-b border-dark-border">
         <div className="text-[11px] font-mono font-bold uppercase tracking-widest text-accent-light mb-1">
-          Faculty Directory Management
+          Faculty and Staff Directory Management
         </div>
         <h1 className="text-2xl font-bold font-sans text-white">
-          Faculty Section
+          Faculty and Staff Section
         </h1>
         <p className="text-xs text-ink-light-muted mt-1">
-          Add, edit, or delete faculty members with their photo, name, and typed department.
+          Add, edit, or delete faculty and staff members with their photo, name, and typed department.
         </p>
       </div>
 

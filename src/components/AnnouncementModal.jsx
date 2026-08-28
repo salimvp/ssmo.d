@@ -63,6 +63,17 @@ export default function AnnouncementModal({ announcement, onClose }) {
           </button>
         </div>
 
+        {/* Full-Size Image */}
+        {announcement.image_url && (
+          <div className="w-full max-h-[60vh] overflow-hidden bg-dark">
+            <img
+              src={announcement.image_url}
+              alt={announcement.title}
+              className="w-full h-full object-contain"
+            />
+          </div>
+        )}
+
         {/* Content Body */}
         <div className="p-6 sm:p-7 overflow-y-auto space-y-6 text-ink-secondary text-sm sm:text-base leading-relaxed">
           {announcement.content ? (

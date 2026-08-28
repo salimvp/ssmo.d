@@ -145,7 +145,7 @@ export default function AchievementsPage() {
               to="/faculties"
               className="px-3 py-1.5 rounded-sm text-xs font-medium text-ink-light-secondary hover:text-white hover:bg-white/5 transition-colors"
             >
-              Faculties
+              Faculty and Staff
             </Link>
           </div>
 
@@ -194,7 +194,7 @@ export default function AchievementsPage() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="block px-3 py-2 text-sm font-medium text-ink-light hover:text-white hover:bg-white/5 rounded-md transition-colors"
               >
-                Faculties
+                Faculty and Staff
               </Link>
               <Link
                 to="/"
@@ -226,7 +226,7 @@ export default function AchievementsPage() {
             Milestones & Accolades
           </h1>
           <p className="text-sm sm:text-base text-ink-light-secondary max-w-2xl leading-relaxed">
-            A comprehensive record of 100% board examination pass results, state rank distinctions, sports championships, and pedagogical innovations at SSMO ITE, Tirurangadi.
+            A proud record of Kerala PSC ranks in LPST & UPST examinations, KTET qualification among students during their course, and continued success in TTI kalolsavam and other cultural competitions at SSMO ITE, Tirurangadi.
           </p>
         </div>
       </section>

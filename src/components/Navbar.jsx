@@ -22,7 +22,7 @@ export default function Navbar({ announcements = [], onOpenAnnouncementModal }) 
     { name: 'Why SSMO', href: '/#why-ssmo' },
     { name: 'D.El.Ed', href: '/#courses' },
     { name: 'Gallery', href: '/gallery' },
-    { name: 'Faculties', href: '/faculties' },
+    { name: 'Faculty and Staff', href: '/faculties' },
     { name: 'Visit Us', href: '/#contact' },
   ];
 

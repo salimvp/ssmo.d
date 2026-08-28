@@ -5,8 +5,7 @@ import {
   Search,
   Menu,
   X,
-  Users,
-  Sparkles
+  Users
 } from 'lucide-react';
 import { api } from '../services/api';
 import Footer from './Footer';
@@ -15,7 +14,6 @@ import SSMOLogo from './SSMOLogo';
 export default function FacultiesPage() {
   const [faculties, setFaculties] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDept, setSelectedDept] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -34,25 +32,12 @@ export default function FacultiesPage() {
     loadFaculties();
   }, []);
 
-  // Dynamically extract unique typed departments
-  const typedDepartments = [
-    'All',
-    ...Array.from(
-      new Set(
-        faculties
-          .map((f) => f.department?.trim())
-          .filter((dept) => Boolean(dept) && dept !== 'All')
-      )
-    )
-  ];
-
   const filteredFaculties = faculties.filter((f) => {
-    const matchesDept = selectedDept === 'All' || f.department?.trim() === selectedDept;
     const q = searchQuery.toLowerCase();
     const matchesSearch =
       f.name?.toLowerCase().includes(q) ||
       f.department?.toLowerCase().includes(q);
-    return matchesDept && matchesSearch;
+    return matchesSearch;
   });
 
   return (
@@ -68,7 +53,7 @@ export default function FacultiesPage() {
                 ITE
               </span>
               <span className="text-[10px] font-medium text-ink-light-muted tracking-wider uppercase">
-                Faculty Directory
+                Faculty and Staff Directory
               </span>
             </div>
           </Link>
@@ -97,7 +82,7 @@ export default function FacultiesPage() {
               to="/faculties"
               className="px-3 py-1.5 rounded-sm text-xs font-medium text-white bg-white/10"
             >
-              Faculties
+              Faculty and Staff
             </Link>
           </div>
 
@@ -146,7 +131,7 @@ export default function FacultiesPage() {
                 Gallery
               </Link>
               <span className="block px-3 py-2 text-sm font-medium text-white bg-white/10 rounded-md">
-                Faculties
+                Faculty and Staff
               </span>
               <Link
                 to="/"
@@ -170,12 +155,8 @@ export default function FacultiesPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/70 to-dark/80" />
         </div>
         <div className="relative z-10 max-w-content mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-accent/20 text-accent-light border border-accent/30">
-            <Sparkles className="w-3.5 h-3.5" />
-            Distinguished Faculty & Mentors
-          </span>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
-            Meet Our Educational Faculty
+            Meet Our Faculties and Staff
           </h1>
           <p className="text-sm sm:text-base text-ink-light-secondary max-w-2xl leading-relaxed">
             Dedicated educators shaping future school teachers at SSMO Institute of Teacher Education, Tirurangadi.
@@ -187,33 +168,15 @@ export default function FacultiesPage() {
       <section className="py-12 sm:py-20 flex-1 bg-canvas">
         <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
-          {/* Department Filter Pills & Search */}
-          <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between pb-6 border-b border-surface-border">
-            {/* Filter Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
-              {typedDepartments.map((dept) => (
-                <button
-                  key={dept}
-                  onClick={() => setSelectedDept(dept)}
-                  className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                    selectedDept === dept
-                      ? 'bg-accent text-white shadow-soft-sm scale-102'
-                      : 'bg-surface hover:bg-canvas-subtle text-ink-secondary border border-surface-border'
-                  }`}
-                >
-                  {dept}
-                </button>
-              ))}
-            </div>
-
-            {/* Search Box */}
+          {/* Search Box */}
+          <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-end pb-6 border-b border-surface-border">
             <div className="relative w-full md:w-72 shrink-0">
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search faculty name or department..."
+                placeholder="Search faculty name..."
                 className="w-full pl-10 pr-4 py-2 bg-surface border border-surface-border rounded-full text-xs text-ink-primary placeholder-ink-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
               />
             </div>
@@ -277,17 +240,7 @@ export default function FacultiesPage() {
                     </div>
                   </div>
 
-                  {/* Clean Bottom Card Footer */}
-                  <div className="p-4 bg-surface flex items-center justify-between border-t border-surface-border/60">
-                    <span className="text-xs font-bold text-ink-primary truncate">
-                      {faculty.name}
-                    </span>
-                    {faculty.department && (
-                      <span className="text-[11px] font-medium text-accent shrink-0 ml-2">
-                        {faculty.department}
-                      </span>
-                    )}
-                  </div>
+                  {/* No duplicate footer — name & department shown once in image overlay */}
                 </div>
               ))}
             </div>

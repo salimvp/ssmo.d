@@ -56,6 +56,7 @@ export default {
       },
       fontFamily: {
         sans: ['Manrope', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        poppins: ['Poppins', 'sans-serif'],
         serif: ['Newsreader', 'Playfair Display', 'Georgia', 'serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },

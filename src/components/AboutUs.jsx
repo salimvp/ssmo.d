@@ -8,10 +8,7 @@ export default function AboutUs({ settings = {} }) {
   const intervalRef = useRef(null);
 
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setActiveLeaderTab(prev => prev === 'principal' ? 'manager' : 'principal');
-    }, 2500);
-    return () => clearInterval(intervalRef.current);
+    // No auto-switching — user clicks tabs to change
   }, []);
 
   const principal = {

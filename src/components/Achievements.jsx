@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Pause, Play, ArrowRight, Trophy, Maximize2 } from 'lucide-react';
 import SectionHeader from './ui/SectionHeader';
@@ -50,6 +50,21 @@ const DEFAULT_FALLBACK_ACHIEVEMENTS = [
 export default function Achievements({ achievements = [], onSelectAchievement }) {
   const [isPaused, setIsPaused] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
+  const marqueeRef = useRef(null);
+  const scrollPosRef = useRef(0);
+
+  const handleMouseEnter = () => {
+    if (marqueeRef.current) {
+      const computedStyle = window.getComputedStyle(marqueeRef.current);
+      const matrix = new DOMMatrixReadOnly(computedStyle.transform);
+      scrollPosRef.current = matrix.m41;
+    }
+    setIsPaused(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsPaused(false);
+  };
 
   const categories = ['All', 'Academic', 'Arts & Sports', 'Institutional'];
 
@@ -69,7 +84,7 @@ export default function Achievements({ achievements = [], onSelectAchievement })
         <SectionHeader
           eyebrow="Proven Excellence"
           title="Milestones & Accolades"
-          description="Consistent 100% board examination pass results, state rank distinctions, and laurels in educational innovations."
+          description="A proud record of Kerala PSC ranks in LPST & UPST examinations, KTET qualification among students during their course, and continued success in TTI kalolsavam and other cultural competitions."
           action={
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <div className="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
@@ -103,18 +118,15 @@ export default function Achievements({ achievements = [], onSelectAchievement })
 
       {/* Wide Editorial Carousel — Significantly Increased Box & Image Size */}
       <div
-        className="relative w-full overflow-hidden pause-marquee py-4 cursor-pointer select-none"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
+        className="relative w-full overflow-hidden py-4 cursor-pointer select-none"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
-        {/* Edge Fades */}
-        <div className="absolute left-0 top-0 bottom-0 w-10 sm:w-24 bg-gradient-to-r from-canvas to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-10 sm:w-24 bg-gradient-to-l from-canvas to-transparent z-10 pointer-events-none" />
+        {/* Edge Fades - removed white shadow on sides */}
 
         <div
-          className={`flex gap-8 w-max ${
-            isPaused ? '' : 'animate-marquee'
-          }`}
+          ref={marqueeRef}
+          className={`flex gap-8 w-max animate-marquee`}
           style={{ animationPlayState: isPaused ? 'paused' : 'running' }}
         >
           {marqueeItems.map((item, idx) => (
@@ -127,7 +139,7 @@ export default function Achievements({ achievements = [], onSelectAchievement })
               className="w-[320px] sm:w-[420px] md:w-[480px] flex-shrink-0 group rounded-2xl overflow-hidden bg-surface border border-surface-border hover:border-accent/40 transition-all duration-500 shadow-soft-md hover:shadow-soft-xl flex flex-col justify-between"
             >
               {/* Dominant Increased Size Image Container */}
-              <div className="relative h-64 sm:h-76 md:h-84 w-full overflow-hidden bg-dark">
+              <div className="relative h-72 sm:h-80 md:h-96 w-full overflow-hidden bg-dark">
                 <img
                   src={item.image_url || 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1000&auto=format&fit=crop'}
                   alt={item.title}
@@ -171,7 +183,7 @@ export default function Achievements({ achievements = [], onSelectAchievement })
               </div>
 
               {/* Editorial Text Block */}
-              <div className="p-6 sm:p-7 space-y-3 flex-1 flex flex-col justify-between">
+              <div className="p-4 sm:p-5 space-y-2 flex-1 flex flex-col justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-accent">
@@ -196,7 +208,7 @@ export default function Achievements({ achievements = [], onSelectAchievement })
                 </div>
 
                 {/* Bottom Action Strip */}
-                <div className="pt-4 border-t border-surface-border flex items-center justify-between">
+                <div className="pt-3 border-t border-surface-border flex items-center justify-between">
                   <span className="text-xs text-ink-muted">Double-click or tap details</span>
                   <button
                     onClick={(e) => {

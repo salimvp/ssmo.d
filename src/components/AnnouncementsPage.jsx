@@ -95,7 +95,7 @@ export default function AnnouncementsPage() {
               to="/faculties"
               className="px-3 py-1.5 rounded-sm text-xs font-medium text-ink-light-secondary hover:text-white hover:bg-white/5 transition-colors"
             >
-              Faculties
+              Faculty and Staff
             </Link>
           </div>
 
@@ -144,7 +144,7 @@ export default function AnnouncementsPage() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="block px-3 py-2 text-sm font-medium text-ink-light hover:text-white hover:bg-white/5 rounded-md transition-colors"
               >
-                Faculties
+                Faculty and Staff
               </Link>
               <Link
                 to="/"
@@ -247,60 +247,76 @@ export default function AnnouncementsPage() {
                   <div
                     key={item.id}
                     onClick={() => setActiveModalAnnouncement(item)}
-                    className={`group relative flex flex-col justify-between p-6 sm:p-7 rounded-xl bg-surface border transition-all duration-200 cursor-pointer ${
+                    className={`group relative flex flex-col rounded-xl bg-surface border transition-all duration-200 cursor-pointer overflow-hidden ${
                       item.is_pinned
                         ? 'border-accent/40 bg-surface shadow-soft-sm hover:border-accent hover:shadow-soft-md'
                         : 'border-surface-border hover:border-ink-primary/30 hover:bg-surface-secondary shadow-soft-sm hover:shadow-soft-md'
                     }`}
                   >
-                    {/* Top Metadata */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
-                          {item.badge && (
-                            <Badge variant={item.badge === 'IMPORTANT' ? 'warning' : 'accent'} size="sm">
-                              {item.badge}
-                            </Badge>
+                    {/* Image Area */}
+                    {item.image_url && (
+                      <div className="relative w-full h-48 sm:h-56 overflow-hidden bg-dark">
+                        <img
+                          src={item.image_url}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-95"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-dark/60 via-transparent to-transparent" />
+                      </div>
+                    )}
+
+                    {/* Details Area - compact spacing */}
+                    <div className="p-5 sm:p-6 flex flex-col justify-between flex-1">
+                      {/* Top Metadata */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5">
+                            {item.badge && (
+                              <Badge variant={item.badge === 'IMPORTANT' ? 'warning' : 'accent'} size="sm">
+                                {item.badge}
+                              </Badge>
+                            )}
+                            <span className="text-[11px] font-medium text-ink-muted">
+                              {item.category || 'Notice'}
+                            </span>
+                          </div>
+
+                          {item.is_pinned === 1 && (
+                            <span className="text-[10px] font-semibold text-gold flex items-center gap-1">
+                              <Pin className="w-3 h-3" /> Pinned
+                            </span>
                           )}
-                          <span className="text-[11px] font-medium text-ink-muted">
-                            {item.category || 'Notice'}
-                          </span>
                         </div>
 
-                        {item.is_pinned === 1 && (
-                          <span className="text-[10px] font-semibold text-gold flex items-center gap-1">
-                            <Pin className="w-3 h-3" /> Pinned
-                          </span>
+                        {/* Dominant Title */}
+                        <h3 className="text-base sm:text-lg font-sans font-bold text-ink-primary group-hover:text-accent transition-colors leading-snug line-clamp-2">
+                          {item.title}
+                        </h3>
+
+                        {/* Supporting Content Preview */}
+                        {item.content && (
+                          <p className="text-xs sm:text-sm text-ink-secondary line-clamp-2 leading-relaxed">
+                            {item.content}
+                          </p>
                         )}
                       </div>
 
-                      {/* Dominant Title */}
-                      <h3 className="text-base sm:text-lg font-sans font-bold text-ink-primary group-hover:text-accent transition-colors leading-snug line-clamp-2">
-                        {item.title}
-                      </h3>
+                      {/* Card Footer */}
+                      <div className="pt-3 mt-3 border-t border-surface-border flex items-center justify-between">
+                        <div className="text-xs text-ink-muted flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5 text-ink-muted" />
+                          <span>{formattedDate}</span>
+                        </div>
 
-                      {/* Supporting Content Preview */}
-                      {item.content && (
-                        <p className="text-xs sm:text-sm text-ink-secondary line-clamp-3 leading-relaxed">
-                          {item.content}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Card Footer */}
-                    <div className="pt-5 mt-4 border-t border-surface-border flex items-center justify-between">
-                      <div className="text-xs text-ink-muted flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-ink-muted" />
-                        <span>{formattedDate}</span>
-                      </div>
-
-                      <div className="text-xs font-semibold text-accent flex items-center gap-1 group-hover:gap-1.5 transition-all">
-                        <span>{item.link ? 'View' : 'View Full Details'}</span>
-                        {item.link ? (
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        ) : (
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        )}
+                        <div className="text-xs font-semibold text-accent flex items-center gap-1 group-hover:gap-1.5 transition-all">
+                          <span>{item.link ? 'View' : 'View Full Details'}</span>
+                          {item.link ? (
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          ) : (
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

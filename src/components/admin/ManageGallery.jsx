@@ -138,7 +138,7 @@ export default function ManageGallery() {
 
             <div>
               <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
-                Category
+                Category (Optional)
               </label>
               <select
                 value={formData.category}
@@ -173,10 +173,9 @@ export default function ManageGallery() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
-              Context Description (Optional)
-            </label>
+          <div>              <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
+                Description (Optional)
+              </label>
             <textarea
               rows={2}
               value={formData.description}

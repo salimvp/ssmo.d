@@ -6,11 +6,18 @@ export default function Footer({ settings = {} }) {
   const currentYear = new Date().getFullYear();
 
   const sisterInstitutions = [
-    'P.S.M.O. College, Tirurangadi',
-    'Oriental Higher Secondary School',
     'Tirurangadi Yatheem Khana',
-    'MKH School of Nursing & Hospital',
-    'SSMO Industrial Training Institute'
+    'Noorul Islam Madrassa',
+    'Alfitrah Islamic Pre School',
+    'KM Moulavi Orphanage Arabic College',
+    'Orphanage U.P School',
+    'Oriental Higher Secondary School',
+    'SSMO Institute of Teacher Education',
+    'PSMO College',
+    'IGNOU Study Center (1409)',
+    'M.K.H.O Hospital',
+    'M.K.H School of Nursing',
+    'M.K.H College of Paramedical Science'
   ];
 
   return (
@@ -70,7 +77,7 @@ export default function Footer({ settings = {} }) {
               <li><a href="/#why-ssmo" className="hover:text-white transition-colors">05. Why ITE</a></li>
               <li><a href="/#courses" className="hover:text-white transition-colors">06. D.El.Ed Course Details</a></li>
               <li><a href="/gallery" className="hover:text-white transition-colors">07. Photo & Media Archive</a></li>
-              <li><a href="/faculties" className="hover:text-white transition-colors">08. Meet Our Faculties</a></li>
+              <li><a href="/faculties" className="hover:text-white transition-colors">08. Meet Our Faculty and Staff</a></li>
               <li><a href="/#contact" className="hover:text-white transition-colors">09. Visit Us & Location</a></li>
             </ul>
           </div>

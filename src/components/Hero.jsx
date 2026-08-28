@@ -27,7 +27,14 @@ export default function Hero({ settings = {} }) {
 
         {/* Main Headline */}
         <div className="space-y-3 max-w-4xl mx-auto">
-          <div className="text-base sm:text-lg md:text-xl font-bold tracking-[0.18em] text-accent-light uppercase font-mono">
+          <div
+            className="text-xl sm:text-2xl md:text-3xl font-poppins font-black tracking-[0.10em] text-accent-light uppercase drop-shadow-lg"
+            style={{
+              WebkitTextStroke: '1.5px rgba(45, 212, 191, 0.5)',
+              paintOrder: 'stroke fill',
+              textShadow: '0 0 2px rgba(45, 212, 191, 0.6), 0 0 4px rgba(45, 212, 191, 0.3)'
+            }}
+          >
             Seethi Sahib Memorial Orphanage
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
@@ -62,19 +69,19 @@ export default function Hero({ settings = {} }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center md:text-left">
           <div className="space-y-0.5">
             <span className="text-xl sm:text-2xl font-bold font-sans text-white tracking-tight">60+ Years</span>
-            <p className="text-[11px] sm:text-xs text-ink-light-muted">Pedagogical Heritage</p>
+            <p className="text-[11px] sm:text-xs text-ink-light-muted">Educational Legacy</p>
           </div>
           <div className="space-y-0.5 border-l border-dark-border pl-4 sm:pl-6">
             <span className="text-xl sm:text-2xl font-bold font-sans text-accent-light tracking-tight">100% Pass</span>
             <p className="text-[11px] sm:text-xs text-ink-light-muted">D.El.Ed Board Exam Record</p>
           </div>
           <div className="space-y-0.5 border-l border-dark-border pl-4 sm:pl-6">
-            <span className="text-xl sm:text-2xl font-bold font-sans text-white tracking-tight">5,000+</span>
+            <span className="text-xl sm:text-2xl font-bold font-sans text-white tracking-tight">2,000+</span>
             <p className="text-[11px] sm:text-xs text-ink-light-muted">Alumni Educators</p>
           </div>
           <div className="space-y-0.5 border-l border-dark-border pl-4 sm:pl-6">
             <span className="text-xl sm:text-2xl font-bold font-sans text-gold-dark tracking-tight">NCTE</span>
-            <p className="text-[11px] sm:text-xs text-ink-light-muted">Govt. of Kerala Approved</p>
+            <p className="text-[11px] sm:text-xs text-ink-light-muted">Recognised</p>
           </div>
         </div>
       </div>

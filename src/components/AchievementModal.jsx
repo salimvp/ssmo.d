@@ -83,13 +83,13 @@ export default function AchievementModal({ achievement, onClose }) {
         {/* Scrollable Modal Body */}
         <div className="p-5 sm:p-7 overflow-y-auto space-y-6 text-ink-secondary">
           
-          {/* Big Featured Image */}
+          {/* Full Height Featured Image */}
           {achievement.image_url && (
-            <div className="relative w-full h-64 sm:h-80 md:h-96 rounded-xl overflow-hidden bg-dark border border-surface-border shadow-soft-sm group">
+            <div className="relative w-full rounded-xl overflow-hidden bg-dark border border-surface-border shadow-soft-sm group">
               <img
                 src={achievement.image_url}
                 alt={achievement.title}
-                className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                className="w-full max-h-[70vh] object-contain"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-dark/60 via-transparent to-transparent pointer-events-none" />
 

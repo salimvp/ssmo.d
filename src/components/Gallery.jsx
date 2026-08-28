@@ -87,7 +87,7 @@ export default function Gallery({ gallery = [] }) {
                       loading="lazy"
                     />
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-dark/80 via-dark/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-5 text-white">
+                    <div className="absolute inset-0 bg-gradient-to-t from-dark/80 via-dark/20 to-transparent flex flex-col justify-between p-5 text-white">
                       <div className="flex justify-between items-start">
                         <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-dark/70 px-2 py-0.5 rounded-sm backdrop-blur-sm text-accent-light">
                           {item.category}

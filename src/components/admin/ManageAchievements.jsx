@@ -168,7 +168,7 @@ export default function ManageAchievements() {
 
             <div>
               <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
-                Subtitle / Details
+                Subtitle / Details (Optional)
               </label>
               <input
                 type="text"
@@ -198,7 +198,7 @@ export default function ManageAchievements() {
 
             <div>
               <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
-                Rank Badge (Golden Pill)
+                Rank Badge (Optional)
               </label>
               <input
                 type="text"
@@ -211,7 +211,7 @@ export default function ManageAchievements() {
 
             <div>
               <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
-                Year
+                Year (Optional)
               </label>
               <input
                 type="text"
@@ -243,10 +243,9 @@ export default function ManageAchievements() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
-              Description
-            </label>
+          <div>              <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
+                Description (Optional)
+              </label>
             <textarea
               rows={3}
               value={formData.description}

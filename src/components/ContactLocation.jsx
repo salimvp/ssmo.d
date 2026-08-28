@@ -10,7 +10,10 @@ import {
   Bus,
   CheckCircle2,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Facebook,
+  Instagram,
+  Youtube
 } from 'lucide-react';
 import { api } from '../services/api';
 import Button from './ui/Button';
@@ -64,6 +67,17 @@ export default function ContactLocation({ settings = {} }) {
           <p className="lead-text-dark">
             Located in the historic town of Tirurangadi, within the serene Saudabad educational complex.
           </p>
+          <div className="flex items-center gap-4 pt-2">
+            <a href="https://www.facebook.com/p/S-S-M-O-I-T-E-100067328807421/" target="_blank" rel="noopener noreferrer" className="p-3 rounded-lg bg-[#1877F2]/10 hover:bg-[#1877F2]/20 text-[#1877F2] hover:text-[#4299E1] transition-colors">
+              <Facebook className="w-6 h-6" />
+            </a>
+            <a href="https://www.instagram.com/ssmo_ite_tirurangadi?igsi=dmtlZ2piOTM0Mnlm" target="_blank" rel="noopener noreferrer" className="p-3 rounded-lg bg-[#E4405F]/10 hover:bg-[#E4405F]/20 text-[#E4405F] hover:text-[#F77737] transition-colors">
+              <Instagram className="w-6 h-6" />
+            </a>
+            <a href="https://youtube.com/@ssmoitevoice5882?si=OOGYIwim1u-5bp0M" target="_blank" rel="noopener noreferrer" className="p-3 rounded-lg bg-[#FF0000]/10 hover:bg-[#FF0000]/20 text-[#FF0000] hover:text-[#FF4444] transition-colors">
+              <Youtube className="w-6 h-6" />
+            </a>
+          </div>
         </div>
 
         {/* 2-Column Story Layout: Large Address + Transit on Left, Inquiry Form on Right */}

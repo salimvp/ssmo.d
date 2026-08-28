@@ -14,7 +14,7 @@ export default function Courses() {
 
   const modules = [
     'Childhood & The Growing Child (Developmental Psychology)',
-    'Pedagogy of Primary Language Education (Malayalam, English, Arabic)',
+    'Pedagogy of Primary Language Education (Malayalam, English)',
     'Mathematics & Environmental Studies Pedagogy',
     'ICT in Education & Modern Learning Technologies',
     'Art, Craft & TLM (Teaching Learning Material) Creation',
