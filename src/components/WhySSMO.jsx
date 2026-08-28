@@ -57,7 +57,7 @@ export default function WhySSMO() {
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-accent text-white text-xs font-semibold hover:bg-accent-hover transition-colors shadow-dark-sm"
             >
               <Users className="w-4 h-4" />
-              Meet Our Faculty and Staff
+              Meet Our Faculties and Staff
             </Link>
           </div>
         </div>
