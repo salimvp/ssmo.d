@@ -44,7 +44,7 @@ export default function Navbar({ announcements = [], onOpenAnnouncementModal }) 
               <SSMOLogo className="w-10 h-10 sm:w-12 sm:h-12 transition-transform duration-300 group-hover:scale-102" />
               <div className="flex flex-col">
                 <span className="text-sm sm:text-base font-bold font-sans tracking-tight text-white leading-tight">
-                  I.T.E
+                  SSMO ITE
                 </span>
                 <span className="text-[10px] sm:text-[11px] font-medium text-ink-light-muted tracking-wider uppercase">
                   Tirurangadi, Kerala
