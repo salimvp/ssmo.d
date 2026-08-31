@@ -18,9 +18,9 @@ export default function Courses() {
     'Mathematics & Environmental Studies Pedagogy',
     'ICT in Education & Modern Learning Technologies',
     'Art, Craft & TLM (Teaching Learning Material) Creation',
-    'Physical Education, Health & Community Outreach',
+    '10-Day Residential Learning Camp & 5-Day Nature Camp',
     '100+ Days Intensive School Internship & Micro-Teaching',
-    'Educational Action Research & Reflective Journaling'
+    '5+ Days Educational Study Tour & Experiential Learning'
   ];
 
   return (
