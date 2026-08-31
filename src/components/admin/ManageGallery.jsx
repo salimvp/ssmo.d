@@ -11,7 +11,7 @@ export default function ManageGallery() {
 
   const [formData, setFormData] = useState({
     title: '',
-    category: 'Campus',
+    category: '',
     image_url: '',
     description: '',
     display_order: 0
@@ -62,7 +62,7 @@ export default function ManageGallery() {
       setFeedback({ type: 'success', message: 'Photo added to archive successfully' });
       setFormData({
         title: '',
-        category: 'Campus',
+        category: '',
         image_url: '',
         description: '',
         display_order: 0
@@ -145,6 +145,7 @@ export default function ManageGallery() {
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full px-3 py-2 bg-dark border border-dark-border rounded-md text-xs text-white focus:outline-none focus:border-accent-light"
               >
+                <option value="">Choose...</option>
                 {categories.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}

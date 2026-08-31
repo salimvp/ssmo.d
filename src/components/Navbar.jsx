@@ -18,6 +18,7 @@ export default function Navbar({ announcements = [], onOpenAnnouncementModal }) 
     { name: 'Home', href: '/#hero' },
     { name: 'Announcements', href: '/#announcements', badge: announcements.length > 0 ? announcements.length : null },
     { name: 'Our Story', href: '/#about' },
+    { name: 'Founder', href: '/#founder' },
     { name: 'Achievements', href: '/#achievements' },
     { name: 'Why SSMO', href: '/#why-ssmo' },
     { name: 'D.El.Ed', href: '/#courses' },

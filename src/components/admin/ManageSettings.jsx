@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Upload, User, Phone, Mail, MapPin, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { Settings, Save, Upload, User, Phone, Mail, MapPin, CheckCircle2, AlertCircle, X, Award } from 'lucide-react';
 import { api } from '../../services/api';
 import Button from '../ui/Button';
 
@@ -223,6 +223,106 @@ export default function ManageSettings() {
               rows={4}
               value={settings.manager_message || ''}
               onChange={(e) => handleChange('manager_message', e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-dark border border-dark-border rounded-md text-xs text-white focus:outline-none focus:border-accent-light"
+            />
+          </div>
+        </div>
+
+        {/* Founder's Desk */}
+        <div className="bg-dark-surface border border-dark-border rounded-xl p-6 sm:p-8 space-y-5">
+          <h2 className="text-base font-bold font-sans text-white flex items-center gap-2">
+            <Award className="w-4 h-4 text-gold-dark" />
+            <span>Founder's Details</span>
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
+                Founder Name
+              </label>
+              <input
+                type="text"
+                value={settings.founder_name || ''}
+                onChange={(e) => handleChange('founder_name', e.target.value)}
+                placeholder="MK Hajee"
+                className="w-full px-3.5 py-2.5 bg-dark border border-dark-border rounded-md text-xs text-white focus:outline-none focus:border-accent-light"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
+                Designation
+              </label>
+              <input
+                type="text"
+                value={settings.founder_designation || ''}
+                onChange={(e) => handleChange('founder_designation', e.target.value)}
+                placeholder="Founder General Secretary, Tirurangadi Muslim Orphanage Committee"
+                className="w-full px-3.5 py-2.5 bg-dark border border-dark-border rounded-md text-xs text-white focus:outline-none focus:border-accent-light"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
+              Founder Portrait Image URL / Upload
+            </label>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="text"
+                value={settings.founder_image || ''}
+                onChange={(e) => handleChange('founder_image', e.target.value)}
+                placeholder="/founder.jpeg"
+                className="flex-1 px-3.5 py-2.5 bg-dark border border-dark-border rounded-md text-xs text-white focus:outline-none focus:border-accent-light"
+              />
+              <label className="px-4 py-2 rounded-md bg-dark hover:bg-dark-elevated text-ink-light text-xs font-semibold border border-dark-border cursor-pointer flex items-center justify-center gap-2">
+                <Upload className="w-3.5 h-3.5 text-gold-dark" />
+                <span>Upload</span>
+                <input
+                  type="file"
+                  onChange={(e) => handleImageUpload('founder_image', e.target.files[0])}
+                  className="hidden"
+                  accept="image/*"
+                />
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
+              Short Bio (Shown initially - Leave blank for default)
+            </label>
+            <textarea
+              rows={3}
+              value={settings.founder_short_bio || ''}
+              onChange={(e) => handleChange('founder_short_bio', e.target.value)}
+              placeholder="Brief introduction visible before clicking Read More..."
+              className="w-full px-3.5 py-2.5 bg-dark border border-dark-border rounded-md text-xs text-white focus:outline-none focus:border-accent-light"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
+              Full Bio (Shown after clicking Read More - Leave blank for default)
+            </label>
+            <textarea
+              rows={6}
+              value={settings.founder_full_bio || ''}
+              onChange={(e) => handleChange('founder_full_bio', e.target.value)}
+              placeholder="Complete biography visible after expanding..."
+              className="w-full px-3.5 py-2.5 bg-dark border border-dark-border rounded-md text-xs text-white focus:outline-none focus:border-accent-light"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
+              Additional Credentials (Leave blank for default)
+            </label>
+            <input
+              type="text"
+              value={settings.founder_additional_credentials || ''}
+              onChange={(e) => handleChange('founder_additional_credentials', e.target.value)}
+              placeholder="General Secretary SSMOITE Managing Committee"
               className="w-full px-3.5 py-2.5 bg-dark border border-dark-border rounded-md text-xs text-white focus:outline-none focus:border-accent-light"
             />
           </div>

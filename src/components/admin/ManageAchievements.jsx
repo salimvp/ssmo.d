@@ -15,7 +15,7 @@ export default function ManageAchievements() {
     title: '',
     subtitle: '',
     description: '',
-    category: 'Academic',
+    category: '',
     year: '2026',
     image_url: '',
     rank_badge: '100% Pass',
@@ -45,7 +45,7 @@ export default function ManageAchievements() {
       title: '',
       subtitle: '',
       description: '',
-      category: 'Academic',
+      category: '',
       year: '2026',
       image_url: '',
       rank_badge: '',
@@ -60,7 +60,7 @@ export default function ManageAchievements() {
       title: item.title,
       subtitle: item.subtitle || '',
       description: item.description || '',
-      category: item.category || 'Academic',
+      category: item.category || '',
       year: item.year || '',
       image_url: item.image_url || '',
       rank_badge: item.rank_badge || '',
@@ -183,13 +183,14 @@ export default function ManageAchievements() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
-                Category
+                Category (Optional)
               </label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full px-3 py-2 bg-dark border border-dark-border rounded-md text-xs text-white focus:outline-none focus:border-accent-light"
               >
+                <option value="">Choose...</option>
                 {categories.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
