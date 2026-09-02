@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Image as ImageIcon, Plus, Trash2, Upload, CheckCircle2, AlertCircle, X } from 'lucide-react';
 import { api } from '../../services/api';
 import Button from '../ui/Button';
+import ImageCropper from '../ui/ImageCropper';
 
 export default function ManageGallery() {
   const [gallery, setGallery] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
+  const [cropperFile, setCropperFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -35,12 +38,19 @@ export default function ManageGallery() {
     fetchGallery();
   }, []);
 
-  const handleFileUpload = async (e) => {
+  const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    // Reset the input so re-selecting the same file triggers again
+    e.target.value = '';
+    setCropperFile(file);
+  };
+
+  const handleCropperApply = async (croppedFile) => {
+    setCropperFile(null);
     setUploading(true);
     try {
-      const res = await api.uploadFile(file);
+      const res = await api.uploadFile(croppedFile);
       setFormData((prev) => ({ ...prev, image_url: res.url }));
       setFeedback({ type: 'success', message: 'Photo uploaded successfully' });
     } catch (err) {
@@ -48,6 +58,10 @@ export default function ManageGallery() {
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleCropperCancel = () => {
+    setCropperFile(null);
   };
 
   const handleSubmit = async (e) => {
@@ -169,7 +183,7 @@ export default function ManageGallery() {
               <label className="px-4 py-2 rounded-md bg-dark hover:bg-dark-elevated text-ink-light text-xs font-semibold border border-dark-border cursor-pointer flex items-center justify-center gap-2">
                 <Upload className="w-3.5 h-3.5 text-accent-light" />
                 <span>{uploading ? 'Uploading...' : 'Upload File'}</span>
-                <input type="file" onChange={handleFileUpload} className="hidden" accept="image/*" />
+                <input type="file" onChange={handleFileSelect} className="hidden" accept="image/*" ref={fileInputRef} />
               </label>
             </div>
           </div>
@@ -216,6 +230,15 @@ export default function ManageGallery() {
           </div>
         ))}
       </div>
+
+      {/* Image Cropper Modal */}
+      {cropperFile && (
+        <ImageCropper
+          file={cropperFile}
+          onApply={handleCropperApply}
+          onCancel={handleCropperCancel}
+        />
+      )}
     </div>
   );
 }
