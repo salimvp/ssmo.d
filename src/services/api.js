@@ -147,6 +147,18 @@ export const api = {
     return data;
   },
 
+  async updateGalleryItem(id, payload) {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE}/gallery/${id}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update gallery item');
+    return data;
+  },
+
   async deleteGalleryItem(id) {
     const headers = await getAuthHeaders();
     const res = await fetch(`${API_BASE}/gallery/${id}`, {

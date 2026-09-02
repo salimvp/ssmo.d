@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Trophy, Plus, Edit2, Trash2, Upload, Star, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Trophy, Plus, Edit2, Trash2, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { api } from '../../services/api';
 import Button from '../ui/Button';
+import ImageCropper from '../ui/ImageCropper';
 
 export default function ManageAchievements() {
   const [achievements, setAchievements] = useState([]);
@@ -10,6 +11,9 @@ export default function ManageAchievements() {
   const [currentId, setCurrentId] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
+  const [cropperFile, setCropperFile] = useState(null);
+  const [repositionUrl, setRepositionUrl] = useState(null);
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -82,14 +86,22 @@ export default function ManageAchievements() {
     }
   };
 
-  const handleFileUpload = async (e) => {
+  // ── Upload via cropper ──────────────────────────────────────────────
+  const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    e.target.value = '';
+    setCropperFile(file);
+  };
+
+  const handleCropperApply = async (croppedFile) => {
+    setCropperFile(null);
+    setRepositionUrl(null);
     setUploading(true);
     try {
-      const res = await api.uploadFile(file);
+      const res = await api.uploadFile(croppedFile);
       setFormData((prev) => ({ ...prev, image_url: res.url }));
-      setFeedback({ type: 'success', message: 'Image uploaded successfully' });
+      setFeedback({ type: 'success', message: isEditing ? 'Image repositioned & uploaded' : 'Image uploaded successfully' });
     } catch (err) {
       setFeedback({ type: 'error', message: err.message || 'Upload failed' });
     } finally {
@@ -97,6 +109,17 @@ export default function ManageAchievements() {
     }
   };
 
+  const handleCropperCancel = () => {
+    setCropperFile(null);
+    setRepositionUrl(null);
+  };
+
+  // ── Reposition existing image ───────────────────────────────────────
+  const handleReposition = (url) => {
+    setRepositionUrl(url);
+  };
+
+  // ── Submit ──────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -238,15 +261,35 @@ export default function ManageAchievements() {
               />
               <label className="px-4 py-2 rounded-md bg-dark hover:bg-dark-elevated text-ink-light text-xs font-semibold border border-dark-border cursor-pointer flex items-center justify-center gap-2">
                 <Upload className="w-3.5 h-3.5 text-accent-light" />
-                <span>{uploading ? 'Uploading...' : 'Upload'}</span>
-                <input type="file" onChange={handleFileUpload} className="hidden" accept="image/*" />
+                <span>{uploading ? 'Uploading...' : 'Upload & Position'}</span>
+                <input type="file" onChange={handleFileSelect} className="hidden" accept="image/*" ref={fileInputRef} />
               </label>
+              {isEditing && formData.image_url && (
+                <button
+                  type="button"
+                  onClick={() => handleReposition(formData.image_url)}
+                  className="px-4 py-2 rounded-md bg-dark hover:bg-dark-elevated text-accent-light text-xs font-semibold border border-accent/30 flex items-center justify-center gap-2 transition-colors"
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  Reposition
+                </button>
+              )}
             </div>
+            {isEditing && formData.image_url && (
+              <div className="mt-3">
+                <img
+                  src={formData.image_url}
+                  alt="Current"
+                  className="h-20 rounded-md border border-dark-border object-cover"
+                />
+              </div>
+            )}
           </div>
 
-          <div>              <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
-                Description (Optional)
-              </label>
+          <div>
+            <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
+              Description (Optional)
+            </label>
             <textarea
               rows={3}
               value={formData.description}
@@ -306,6 +349,24 @@ export default function ManageAchievements() {
           </div>
         ))}
       </div>
+
+      {/* Image Cropper Modal — new upload */}
+      {cropperFile && (
+        <ImageCropper
+          file={cropperFile}
+          onApply={handleCropperApply}
+          onCancel={handleCropperCancel}
+        />
+      )}
+
+      {/* Image Cropper Modal — reposition existing */}
+      {repositionUrl && (
+        <ImageCropper
+          imageUrl={repositionUrl}
+          onApply={handleCropperApply}
+          onCancel={handleCropperCancel}
+        />
+      )}
     </div>
   );
 }

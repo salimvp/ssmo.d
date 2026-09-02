@@ -7,7 +7,7 @@ const CANVAS_H = 450;
 const GRID_COLS = 9;
 const GRID_ROWS = 5;
 
-export default function ImageCropper({ file, onApply, onCancel }) {
+export default function ImageCropper({ file, imageUrl, onApply, onCancel }) {
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
   const containerRef = useRef(null);
@@ -22,15 +22,18 @@ export default function ImageCropper({ file, onApply, onCancel }) {
   const zoomRef = useRef(1);
   const offsetStateRef = useRef({ x: 0, y: 0 });
 
-  // Keep refs in sync for draw loop access
   useEffect(() => { zoomRef.current = zoom; }, [zoom]);
   useEffect(() => { offsetStateRef.current = offset; offsetRef.current = offset; }, [offset]);
 
-  // Load image from file
+  // Load image from file or URL
   useEffect(() => {
-    if (!file) return;
-    const url = URL.createObjectURL(file);
+    const src = file ? URL.createObjectURL(file) : imageUrl;
+    if (!src) return;
     const img = new Image();
+    // For cross-origin URLs (e.g. Supabase storage), set crossOrigin
+    if (imageUrl && imageUrl.startsWith('http')) {
+      img.crossOrigin = 'anonymous';
+    }
     img.onload = () => {
       imgRef.current = img;
       setImgLoaded(true);
@@ -43,11 +46,12 @@ export default function ImageCropper({ file, onApply, onCancel }) {
       offsetRef.current = { x: 0, y: 0 };
       offsetStateRef.current = { x: 0, y: 0 };
     };
-    img.src = url;
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+    img.src = src;
+    return () => {
+      if (file) URL.revokeObjectURL(src);
+    };
+  }, [file, imageUrl]);
 
-  // Clamp offset
   const clampOffset = useCallback((nx, ny, z) => {
     const img = imgRef.current;
     if (!img) return { x: nx, y: ny };
@@ -61,7 +65,6 @@ export default function ImageCropper({ file, onApply, onCancel }) {
     };
   }, []);
 
-  // Get scale factor between screen pixels and canvas internal pixels
   const getCanvasScale = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return 1;
@@ -75,15 +78,12 @@ export default function ImageCropper({ file, onApply, onCancel }) {
     if (!canvas || !img) return;
 
     const ctx = canvas.getContext('2d');
-
-    // White background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
     const z = zoomRef.current;
     const o = offsetStateRef.current;
 
-    // Draw image
     const w = img.naturalWidth * z;
     const h = img.naturalHeight * z;
     const dx = (CANVAS_W - w) / 2 + o.x;
@@ -91,28 +91,23 @@ export default function ImageCropper({ file, onApply, onCancel }) {
 
     ctx.drawImage(img, dx, dy, w, h);
 
-    // Draw grid
     if (showGrid) {
       ctx.strokeStyle = 'rgba(45, 212, 191, 0.35)';
       ctx.lineWidth = 1;
       const cellW = CANVAS_W / GRID_COLS;
       const cellH = CANVAS_H / GRID_ROWS;
-
       for (let i = 1; i < GRID_COLS; i++) {
-        const x = cellW * i;
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, CANVAS_H);
+        ctx.moveTo(cellW * i, 0);
+        ctx.lineTo(cellW * i, CANVAS_H);
         ctx.stroke();
       }
       for (let i = 1; i < GRID_ROWS; i++) {
-        const y = cellH * i;
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(CANVAS_W, y);
+        ctx.moveTo(0, cellH * i);
+        ctx.lineTo(CANVAS_W, cellH * i);
         ctx.stroke();
       }
-
       ctx.strokeStyle = 'rgba(45, 212, 191, 0.55)';
       ctx.lineWidth = 1.5;
       ctx.setLineDash([6, 4]);
@@ -130,10 +125,7 @@ export default function ImageCropper({ file, onApply, onCancel }) {
 
   useEffect(() => {
     let raf;
-    const loop = () => {
-      draw();
-      raf = requestAnimationFrame(loop);
-    };
+    const loop = () => { draw(); raf = requestAnimationFrame(loop); };
     if (imgLoaded) raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, [draw, imgLoaded]);
@@ -143,16 +135,18 @@ export default function ImageCropper({ file, onApply, onCancel }) {
     e.preventDefault();
     const scale = getCanvasScale();
     setIsDragging(true);
-    const canvasX = (e.clientX - containerRef.current.getBoundingClientRect().left) / scale;
-    const canvasY = (e.clientY - containerRef.current.getBoundingClientRect().top) / scale;
+    const rect = containerRef.current.getBoundingClientRect();
+    const canvasX = (e.clientX - rect.left) / scale;
+    const canvasY = (e.clientY - rect.top) / scale;
     dragStartRef.current = { x: canvasX - offsetRef.current.x, y: canvasY - offsetRef.current.y };
   };
 
   const handleMouseMove = (e) => {
     if (!isDragging) return;
     const scale = getCanvasScale();
-    const canvasX = (e.clientX - containerRef.current.getBoundingClientRect().left) / scale;
-    const canvasY = (e.clientY - containerRef.current.getBoundingClientRect().top) / scale;
+    const rect = containerRef.current.getBoundingClientRect();
+    const canvasX = (e.clientX - rect.left) / scale;
+    const canvasY = (e.clientY - rect.top) / scale;
     const nx = canvasX - dragStartRef.current.x;
     const ny = canvasY - dragStartRef.current.y;
     const clamped = clampOffset(nx, ny, zoomRef.current);
@@ -196,8 +190,9 @@ export default function ImageCropper({ file, onApply, onCancel }) {
     } else if (e.touches.length === 1) {
       const scale = getCanvasScale();
       setIsDragging(true);
-      const canvasX = (e.touches[0].clientX - containerRef.current.getBoundingClientRect().left) / scale;
-      const canvasY = (e.touches[0].clientY - containerRef.current.getBoundingClientRect().top) / scale;
+      const rect = containerRef.current.getBoundingClientRect();
+      const canvasX = (e.touches[0].clientX - rect.left) / scale;
+      const canvasY = (e.touches[0].clientY - rect.top) / scale;
       dragStartRef.current = { x: canvasX - offsetRef.current.x, y: canvasY - offsetRef.current.y };
     }
   };
@@ -217,8 +212,9 @@ export default function ImageCropper({ file, onApply, onCancel }) {
       });
     } else if (e.touches.length === 1 && isDragging) {
       const scale = getCanvasScale();
-      const canvasX = (e.touches[0].clientX - containerRef.current.getBoundingClientRect().left) / scale;
-      const canvasY = (e.touches[0].clientY - containerRef.current.getBoundingClientRect().top) / scale;
+      const rect = containerRef.current.getBoundingClientRect();
+      const canvasX = (e.touches[0].clientX - rect.left) / scale;
+      const canvasY = (e.touches[0].clientY - rect.top) / scale;
       const nx = canvasX - dragStartRef.current.x;
       const ny = canvasY - dragStartRef.current.y;
       const clamped = clampOffset(nx, ny, zoomRef.current);
@@ -254,7 +250,6 @@ export default function ImageCropper({ file, onApply, onCancel }) {
     offscreen.height = CANVAS_H;
     const ctx = offscreen.getContext('2d');
 
-    // White background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
@@ -269,7 +264,7 @@ export default function ImageCropper({ file, onApply, onCancel }) {
 
     offscreen.toBlob((blob) => {
       if (!blob) return;
-      const ext = file.type === 'image/png' ? 'png' : 'jpg';
+      const ext = (file && file.type === 'image/png') || (imageUrl && imageUrl.endsWith('.png')) ? 'png' : 'jpg';
       const cropped = new File([blob], `cropped_${Date.now()}.${ext}`, {
         type: blob.type || 'image/jpeg',
       });
@@ -282,7 +277,9 @@ export default function ImageCropper({ file, onApply, onCancel }) {
       <div className="bg-dark-surface border border-dark-border rounded-xl w-full max-w-3xl shadow-dark-md overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-dark-border">
-          <h3 className="text-sm font-bold text-white">Position Image</h3>
+          <h3 className="text-sm font-bold text-white">
+            {imageUrl ? 'Reposition Image' : 'Position Image'}
+          </h3>
           <button
             onClick={onCancel}
             className="p-1 rounded hover:bg-dark-elevated text-ink-light-muted hover:text-white transition-colors"
@@ -321,27 +318,19 @@ export default function ImageCropper({ file, onApply, onCancel }) {
               'bottom-0 left-0 border-b-2 border-l-2',
               'bottom-0 right-0 border-b-2 border-r-2',
             ].map((pos, i) => (
-              <div
-                key={i}
-                className={`absolute w-6 h-6 border-accent-light/60 ${pos}`}
-              />
+              <div key={i} className={`absolute w-6 h-6 border-accent-light/60 ${pos}`} />
             ))}
           </div>
         </div>
 
         {/* Controls */}
         <div className="px-5 pb-5 space-y-4">
-          {/* Zoom slider */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setZoom((z) => {
                 const next = Math.max(0.2, z - 0.1 * z);
                 zoomRef.current = next;
-                setOffset((o) => {
-                  const clamped = clampOffset(o.x, o.y, next);
-                  offsetRef.current = clamped;
-                  return clamped;
-                });
+                setOffset((o) => { const c = clampOffset(o.x, o.y, next); offsetRef.current = c; return c; });
                 return next;
               })}
               className="p-1.5 rounded bg-dark hover:bg-dark-elevated text-ink-light-muted hover:text-white transition-colors"
@@ -358,11 +347,7 @@ export default function ImageCropper({ file, onApply, onCancel }) {
                 const z = Number(e.target.value) / 100;
                 zoomRef.current = z;
                 setZoom(z);
-                setOffset((o) => {
-                  const clamped = clampOffset(o.x, o.y, z);
-                  offsetRef.current = clamped;
-                  return clamped;
-                });
+                setOffset((o) => { const c = clampOffset(o.x, o.y, z); offsetRef.current = c; return c; });
               }}
               className="flex-1 h-1.5 rounded-full appearance-none bg-dark-elevated accent-accent-light cursor-pointer"
             />
@@ -370,11 +355,7 @@ export default function ImageCropper({ file, onApply, onCancel }) {
               onClick={() => setZoom((z) => {
                 const next = Math.min(5, z + 0.1 * z);
                 zoomRef.current = next;
-                setOffset((o) => {
-                  const clamped = clampOffset(o.x, o.y, next);
-                  offsetRef.current = clamped;
-                  return clamped;
-                });
+                setOffset((o) => { const c = clampOffset(o.x, o.y, next); offsetRef.current = c; return c; });
                 return next;
               })}
               className="p-1.5 rounded bg-dark hover:bg-dark-elevated text-ink-light-muted hover:text-white transition-colors"
@@ -387,7 +368,6 @@ export default function ImageCropper({ file, onApply, onCancel }) {
             </span>
           </div>
 
-          {/* Toolbar */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <button
@@ -413,28 +393,15 @@ export default function ImageCropper({ file, onApply, onCancel }) {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                onClick={onCancel}
-                variant="dark"
-                size="sm"
-                icon={false}
-              >
+              <Button type="button" onClick={onCancel} variant="dark" size="sm" icon={false}>
                 Cancel
               </Button>
-              <Button
-                type="button"
-                onClick={handleApply}
-                variant="darkPrimary"
-                size="sm"
-                icon={false}
-              >
-                Apply Crop
+              <Button type="button" onClick={handleApply} variant="darkPrimary" size="sm" icon={false}>
+                {imageUrl ? 'Reposition & Save' : 'Apply Crop'}
               </Button>
             </div>
           </div>
 
-          {/* Instruction hint */}
           <p className="text-[10px] text-ink-light-muted text-center">
             Click &amp; drag to pan · Scroll wheel or slider to zoom · Grid available via toolbar
           </p>

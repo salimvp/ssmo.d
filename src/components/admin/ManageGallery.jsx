@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Image as ImageIcon, Plus, Trash2, Upload, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { Image as ImageIcon, Plus, Trash2, Upload, Edit2, X } from 'lucide-react';
 import { api } from '../../services/api';
 import Button from '../ui/Button';
 import ImageCropper from '../ui/ImageCropper';
@@ -10,6 +10,9 @@ export default function ManageGallery() {
   const [uploading, setUploading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
   const [cropperFile, setCropperFile] = useState(null);
+  const [repositionUrl, setRepositionUrl] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentId, setCurrentId] = useState(null);
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -38,21 +41,22 @@ export default function ManageGallery() {
     fetchGallery();
   }, []);
 
+  // ── New upload via cropper ───────────────────────────────────────────
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    // Reset the input so re-selecting the same file triggers again
     e.target.value = '';
     setCropperFile(file);
   };
 
   const handleCropperApply = async (croppedFile) => {
     setCropperFile(null);
+    setRepositionUrl(null);
     setUploading(true);
     try {
       const res = await api.uploadFile(croppedFile);
       setFormData((prev) => ({ ...prev, image_url: res.url }));
-      setFeedback({ type: 'success', message: 'Photo uploaded successfully' });
+      setFeedback({ type: 'success', message: isEditing ? 'Image repositioned & uploaded' : 'Photo uploaded successfully' });
     } catch (err) {
       setFeedback({ type: 'error', message: err.message || 'Upload failed' });
     } finally {
@@ -62,8 +66,35 @@ export default function ManageGallery() {
 
   const handleCropperCancel = () => {
     setCropperFile(null);
+    setRepositionUrl(null);
   };
 
+  // ── Reposition existing image ───────────────────────────────────────
+  const handleReposition = (url) => {
+    setRepositionUrl(url);
+  };
+
+  // ── Edit mode ───────────────────────────────────────────────────────
+  const handleEdit = (item) => {
+    setFormData({
+      title: item.title,
+      category: item.category || '',
+      image_url: item.image_url || '',
+      description: item.description || '',
+      display_order: item.display_order || 0
+    });
+    setIsEditing(true);
+    setCurrentId(item.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleResetForm = () => {
+    setFormData({ title: '', category: '', image_url: '', description: '', display_order: 0 });
+    setIsEditing(false);
+    setCurrentId(null);
+  };
+
+  // ── Submit ──────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.image_url) {
@@ -72,15 +103,14 @@ export default function ManageGallery() {
     }
 
     try {
-      await api.createGalleryItem(formData);
-      setFeedback({ type: 'success', message: 'Photo added to archive successfully' });
-      setFormData({
-        title: '',
-        category: '',
-        image_url: '',
-        description: '',
-        display_order: 0
-      });
+      if (isEditing) {
+        await api.updateGalleryItem(currentId, formData);
+        setFeedback({ type: 'success', message: 'Photo updated successfully' });
+      } else {
+        await api.createGalleryItem(formData);
+        setFeedback({ type: 'success', message: 'Photo added to archive successfully' });
+      }
+      handleResetForm();
       fetchGallery();
     } catch (err) {
       setFeedback({ type: 'error', message: err.message || 'Save failed' });
@@ -130,8 +160,8 @@ export default function ManageGallery() {
       {/* Form */}
       <div className="bg-dark-surface border border-dark-border rounded-xl p-6 sm:p-8 space-y-6">
         <h2 className="text-base font-bold font-sans text-white flex items-center gap-2">
-          <Plus className="w-4 h-4 text-accent-light" />
-          <span>Upload / Add New Photo</span>
+          {isEditing ? <Edit2 className="w-4 h-4 text-accent-light" /> : <Plus className="w-4 h-4 text-accent-light" />}
+          <span>{isEditing ? 'Edit Photo' : 'Upload / Add New Photo'}</span>
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -185,12 +215,32 @@ export default function ManageGallery() {
                 <span>{uploading ? 'Uploading...' : 'Upload File'}</span>
                 <input type="file" onChange={handleFileSelect} className="hidden" accept="image/*" ref={fileInputRef} />
               </label>
+              {isEditing && formData.image_url && (
+                <button
+                  type="button"
+                  onClick={() => handleReposition(formData.image_url)}
+                  className="px-4 py-2 rounded-md bg-dark hover:bg-dark-elevated text-accent-light text-xs font-semibold border border-accent/30 flex items-center justify-center gap-2 transition-colors"
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  Reposition
+                </button>
+              )}
             </div>
+            {isEditing && formData.image_url && (
+              <div className="mt-3">
+                <img
+                  src={formData.image_url}
+                  alt="Current"
+                  className="h-20 rounded-md border border-dark-border object-cover"
+                />
+              </div>
+            )}
           </div>
 
-          <div>              <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
-                Description (Optional)
-              </label>
+          <div>
+            <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
+              Description (Optional)
+            </label>
             <textarea
               rows={2}
               value={formData.description}
@@ -200,9 +250,16 @@ export default function ManageGallery() {
             />
           </div>
 
-          <Button type="submit" variant="darkPrimary" size="md" icon={false}>
-            Add Photo to Archive
-          </Button>
+          <div className="flex items-center gap-3 pt-4 border-t border-dark-border">
+            <Button type="submit" variant="darkPrimary" size="md" icon={false}>
+              {isEditing ? 'Save Changes' : 'Add Photo to Archive'}
+            </Button>
+            {isEditing && (
+              <Button type="button" onClick={handleResetForm} variant="dark" size="md" icon={false}>
+                Cancel
+              </Button>
+            )}
+          </div>
         </form>
       </div>
 
@@ -220,21 +277,39 @@ export default function ManageGallery() {
               <span className="text-[10px] font-mono font-bold text-accent-light uppercase">{item.category}</span>
               <h4 className="text-xs font-bold text-white truncate">{item.title}</h4>
             </div>
-            <button
-              onClick={() => handleDelete(item.id)}
-              className="absolute top-2 right-2 p-1.5 rounded bg-dark/80 text-rose-400 hover:bg-rose-950 transition-colors"
-              title="Delete Photo"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            <div className="absolute top-2 right-2 flex items-center gap-1">
+              <button
+                onClick={() => handleEdit(item)}
+                className="p-1.5 rounded bg-dark/80 text-gold-dark hover:bg-dark-elevated transition-colors"
+                title="Edit Photo"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => handleDelete(item.id)}
+                className="p-1.5 rounded bg-dark/80 text-rose-400 hover:bg-rose-950 transition-colors"
+                title="Delete Photo"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Image Cropper Modal */}
+      {/* Image Cropper Modal — new upload */}
       {cropperFile && (
         <ImageCropper
           file={cropperFile}
+          onApply={handleCropperApply}
+          onCancel={handleCropperCancel}
+        />
+      )}
+
+      {/* Image Cropper Modal — reposition existing */}
+      {repositionUrl && (
+        <ImageCropper
+          imageUrl={repositionUrl}
           onApply={handleCropperApply}
           onCancel={handleCropperCancel}
         />
