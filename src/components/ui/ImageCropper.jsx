@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { X, Grid3x3, ZoomIn, ZoomOut, RotateCcw, Check } from 'lucide-react';
+import { X, Grid3x3, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import Button from './Button';
 
 const CANVAS_W = 800;
@@ -14,11 +14,17 @@ export default function ImageCropper({ file, onApply, onCancel }) {
 
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [showGrid, setShowGrid] = useState(true);
+  const [showGrid, setShowGrid] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const offsetRef = useRef({ x: 0, y: 0 });
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [constrainDrag, setConstrainDrag] = useState(false);
+  const zoomRef = useRef(1);
+  const offsetStateRef = useRef({ x: 0, y: 0 });
+
+  // Keep refs in sync for draw loop access
+  useEffect(() => { zoomRef.current = zoom; }, [zoom]);
+  useEffect(() => { offsetStateRef.current = offset; offsetRef.current = offset; }, [offset]);
 
   // Load image from file
   useEffect(() => {
@@ -28,16 +34,39 @@ export default function ImageCropper({ file, onApply, onCancel }) {
     img.onload = () => {
       imgRef.current = img;
       setImgLoaded(true);
-      // Auto-fit: scale so the image fills the canvas at minimum
       const scaleX = CANVAS_W / img.naturalWidth;
       const scaleY = CANVAS_H / img.naturalHeight;
       const fitZoom = Math.max(scaleX, scaleY) * 1.05;
       setZoom(fitZoom);
+      zoomRef.current = fitZoom;
       setOffset({ x: 0, y: 0 });
+      offsetRef.current = { x: 0, y: 0 };
+      offsetStateRef.current = { x: 0, y: 0 };
     };
     img.src = url;
     return () => URL.revokeObjectURL(url);
   }, [file]);
+
+  // Clamp offset
+  const clampOffset = useCallback((nx, ny, z) => {
+    const img = imgRef.current;
+    if (!img) return { x: nx, y: ny };
+    const w = img.naturalWidth * z;
+    const h = img.naturalHeight * z;
+    const maxX = Math.max(0, (w - CANVAS_W) / 2);
+    const maxY = Math.max(0, (h - CANVAS_H) / 2);
+    return {
+      x: Math.max(-maxX, Math.min(maxX, nx)),
+      y: Math.max(-maxY, Math.min(maxY, ny)),
+    };
+  }, []);
+
+  // Get scale factor between screen pixels and canvas internal pixels
+  const getCanvasScale = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return 1;
+    return canvas.clientWidth / CANVAS_W;
+  }, []);
 
   // Draw loop
   const draw = useCallback(() => {
@@ -46,13 +75,19 @@ export default function ImageCropper({ file, onApply, onCancel }) {
     if (!canvas || !img) return;
 
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    const z = zoomRef.current;
+    const o = offsetStateRef.current;
 
     // Draw image
-    const w = img.naturalWidth * zoom;
-    const h = img.naturalHeight * zoom;
-    const dx = (CANVAS_W - w) / 2 + offset.x;
-    const dy = (CANVAS_H - h) / 2 + offset.y;
+    const w = img.naturalWidth * z;
+    const h = img.naturalHeight * z;
+    const dx = (CANVAS_W - w) / 2 + o.x;
+    const dy = (CANVAS_H - h) / 2 + o.y;
 
     ctx.drawImage(img, dx, dy, w, h);
 
@@ -78,7 +113,6 @@ export default function ImageCropper({ file, onApply, onCancel }) {
         ctx.stroke();
       }
 
-      // Center crosshair
       ctx.strokeStyle = 'rgba(45, 212, 191, 0.55)';
       ctx.lineWidth = 1.5;
       ctx.setLineDash([6, 4]);
@@ -92,55 +126,61 @@ export default function ImageCropper({ file, onApply, onCancel }) {
       ctx.stroke();
       ctx.setLineDash([]);
     }
-  }, [zoom, offset, showGrid]);
+  }, [showGrid]);
 
   useEffect(() => {
-    draw();
+    let raf;
+    const loop = () => {
+      draw();
+      raf = requestAnimationFrame(loop);
+    };
+    if (imgLoaded) raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
   }, [draw, imgLoaded]);
 
-  // Clamp offset so the image doesn't leave the canvas entirely
-  const clampOffset = useCallback((nx, ny, z) => {
-    const img = imgRef.current;
-    if (!img) return { x: nx, y: ny };
-    const w = img.naturalWidth * z;
-    const h = img.naturalHeight * z;
-    const maxX = Math.max(0, (w - CANVAS_W) / 2);
-    const maxY = Math.max(0, (h - CANVAS_H) / 2);
-    return {
-      x: Math.max(-maxX, Math.min(maxX, nx)),
-      y: Math.max(-maxY, Math.min(maxY, ny)),
-    };
-  }, []);
-
-  // Pan handlers
+  // ── Pan handlers (scale-aware) ──────────────────────────────────────
   const handleMouseDown = (e) => {
     e.preventDefault();
+    const scale = getCanvasScale();
     setIsDragging(true);
-    setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
+    const canvasX = (e.clientX - containerRef.current.getBoundingClientRect().left) / scale;
+    const canvasY = (e.clientY - containerRef.current.getBoundingClientRect().top) / scale;
+    dragStartRef.current = { x: canvasX - offsetRef.current.x, y: canvasY - offsetRef.current.y };
   };
 
   const handleMouseMove = (e) => {
     if (!isDragging) return;
-    const nx = e.clientX - dragStart.x;
-    const ny = e.clientY - dragStart.y;
-    setOffset(clampOffset(nx, ny, zoom));
+    const scale = getCanvasScale();
+    const canvasX = (e.clientX - containerRef.current.getBoundingClientRect().left) / scale;
+    const canvasY = (e.clientY - containerRef.current.getBoundingClientRect().top) / scale;
+    const nx = canvasX - dragStartRef.current.x;
+    const ny = canvasY - dragStartRef.current.y;
+    const clamped = clampOffset(nx, ny, zoomRef.current);
+    offsetRef.current = clamped;
+    offsetStateRef.current = clamped;
+    setOffset(clamped);
   };
 
   const handleMouseUp = () => setIsDragging(false);
 
-  // Zoom via wheel
+  // ── Zoom via wheel ──────────────────────────────────────────────────
   const handleWheel = (e) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.05 : 0.05;
     setZoom((prev) => {
       const next = Math.max(0.2, Math.min(5, prev + delta * prev));
-      setOffset((o) => clampOffset(o.x, o.y, next));
+      zoomRef.current = next;
+      setOffset((o) => {
+        const clamped = clampOffset(o.x, o.y, next);
+        offsetRef.current = clamped;
+        return clamped;
+      });
       return next;
     });
   };
 
-  // Touch support
-  const touchRef = useRef({ startDist: 0, startZoom: 1, lastX: 0, lastY: 0 });
+  // ── Touch support ───────────────────────────────────────────────────
+  const touchRef = useRef({ startDist: 0, startZoom: 1 });
 
   const getTouchDist = (touches) => {
     const dx = touches[0].clientX - touches[1].clientX;
@@ -152,13 +192,13 @@ export default function ImageCropper({ file, onApply, onCancel }) {
     if (e.touches.length === 2) {
       e.preventDefault();
       touchRef.current.startDist = getTouchDist(e.touches);
-      touchRef.current.startZoom = zoom;
+      touchRef.current.startZoom = zoomRef.current;
     } else if (e.touches.length === 1) {
+      const scale = getCanvasScale();
       setIsDragging(true);
-      setDragStart({
-        x: e.touches[0].clientX - offset.x,
-        y: e.touches[0].clientY - offset.y,
-      });
+      const canvasX = (e.touches[0].clientX - containerRef.current.getBoundingClientRect().left) / scale;
+      const canvasY = (e.touches[0].clientY - containerRef.current.getBoundingClientRect().top) / scale;
+      dragStartRef.current = { x: canvasX - offsetRef.current.x, y: canvasY - offsetRef.current.y };
     }
   };
 
@@ -168,20 +208,29 @@ export default function ImageCropper({ file, onApply, onCancel }) {
       const dist = getTouchDist(e.touches);
       const scale = dist / touchRef.current.startDist;
       const next = Math.max(0.2, Math.min(5, touchRef.current.startZoom * scale));
-      setZoom((prev) => {
-        setOffset((o) => clampOffset(o.x, o.y, next));
-        return next;
+      zoomRef.current = next;
+      setZoom(next);
+      setOffset((o) => {
+        const clamped = clampOffset(o.x, o.y, next);
+        offsetRef.current = clamped;
+        return clamped;
       });
     } else if (e.touches.length === 1 && isDragging) {
-      const nx = e.touches[0].clientX - dragStart.x;
-      const ny = e.touches[0].clientY - dragStart.y;
-      setOffset(clampOffset(nx, ny, zoom));
+      const scale = getCanvasScale();
+      const canvasX = (e.touches[0].clientX - containerRef.current.getBoundingClientRect().left) / scale;
+      const canvasY = (e.touches[0].clientY - containerRef.current.getBoundingClientRect().top) / scale;
+      const nx = canvasX - dragStartRef.current.x;
+      const ny = canvasY - dragStartRef.current.y;
+      const clamped = clampOffset(nx, ny, zoomRef.current);
+      offsetRef.current = clamped;
+      offsetStateRef.current = clamped;
+      setOffset(clamped);
     }
   };
 
   const handleTouchEnd = () => setIsDragging(false);
 
-  // Reset
+  // ── Reset ───────────────────────────────────────────────────────────
   const handleReset = () => {
     if (!imgRef.current) return;
     const img = imgRef.current;
@@ -189,10 +238,13 @@ export default function ImageCropper({ file, onApply, onCancel }) {
     const scaleY = CANVAS_H / img.naturalHeight;
     const fitZoom = Math.max(scaleX, scaleY) * 1.05;
     setZoom(fitZoom);
+    zoomRef.current = fitZoom;
     setOffset({ x: 0, y: 0 });
+    offsetRef.current = { x: 0, y: 0 };
+    offsetStateRef.current = { x: 0, y: 0 };
   };
 
-  // Apply crop → export canvas as File
+  // ── Apply crop → export canvas as File ──────────────────────────────
   const handleApply = () => {
     const img = imgRef.current;
     if (!img) return;
@@ -202,10 +254,16 @@ export default function ImageCropper({ file, onApply, onCancel }) {
     offscreen.height = CANVAS_H;
     const ctx = offscreen.getContext('2d');
 
-    const w = img.naturalWidth * zoom;
-    const h = img.naturalHeight * zoom;
-    const dx = (CANVAS_W - w) / 2 + offset.x;
-    const dy = (CANVAS_H - h) / 2 + offset.y;
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    const z = zoomRef.current;
+    const o = offsetRef.current;
+    const w = img.naturalWidth * z;
+    const h = img.naturalHeight * z;
+    const dx = (CANVAS_W - w) / 2 + o.x;
+    const dy = (CANVAS_H - h) / 2 + o.y;
 
     ctx.drawImage(img, dx, dy, w, h);
 
@@ -236,8 +294,8 @@ export default function ImageCropper({ file, onApply, onCancel }) {
         {/* Canvas workspace */}
         <div
           ref={containerRef}
-          className="relative mx-auto my-4 overflow-hidden rounded-lg bg-dark border border-dark-border select-none"
-          style={{ width: CANVAS_W, height: CANVAS_H, maxWidth: '100%', touchAction: 'none' }}
+          className="relative mx-auto my-4 overflow-hidden rounded-lg border border-dark-border select-none"
+          style={{ width: CANVAS_W, height: CANVAS_H, maxWidth: '100%', touchAction: 'none', background: '#ffffff' }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -276,7 +334,16 @@ export default function ImageCropper({ file, onApply, onCancel }) {
           {/* Zoom slider */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setZoom((z) => Math.max(0.2, z - 0.1 * z))}
+              onClick={() => setZoom((z) => {
+                const next = Math.max(0.2, z - 0.1 * z);
+                zoomRef.current = next;
+                setOffset((o) => {
+                  const clamped = clampOffset(o.x, o.y, next);
+                  offsetRef.current = clamped;
+                  return clamped;
+                });
+                return next;
+              })}
               className="p-1.5 rounded bg-dark hover:bg-dark-elevated text-ink-light-muted hover:text-white transition-colors"
               title="Zoom out"
             >
@@ -289,13 +356,27 @@ export default function ImageCropper({ file, onApply, onCancel }) {
               value={Math.round(zoom * 100)}
               onChange={(e) => {
                 const z = Number(e.target.value) / 100;
+                zoomRef.current = z;
                 setZoom(z);
-                setOffset((o) => clampOffset(o.x, o.y, z));
+                setOffset((o) => {
+                  const clamped = clampOffset(o.x, o.y, z);
+                  offsetRef.current = clamped;
+                  return clamped;
+                });
               }}
               className="flex-1 h-1.5 rounded-full appearance-none bg-dark-elevated accent-accent-light cursor-pointer"
             />
             <button
-              onClick={() => setZoom((z) => Math.min(5, z + 0.1 * z))}
+              onClick={() => setZoom((z) => {
+                const next = Math.min(5, z + 0.1 * z);
+                zoomRef.current = next;
+                setOffset((o) => {
+                  const clamped = clampOffset(o.x, o.y, next);
+                  offsetRef.current = clamped;
+                  return clamped;
+                });
+                return next;
+              })}
               className="p-1.5 rounded bg-dark hover:bg-dark-elevated text-ink-light-muted hover:text-white transition-colors"
               title="Zoom in"
             >
@@ -355,7 +436,7 @@ export default function ImageCropper({ file, onApply, onCancel }) {
 
           {/* Instruction hint */}
           <p className="text-[10px] text-ink-light-muted text-center">
-            Click &amp; drag to pan · Scroll wheel or slider to zoom · Grid helps with alignment
+            Click &amp; drag to pan · Scroll wheel or slider to zoom · Grid available via toolbar
           </p>
         </div>
       </div>
