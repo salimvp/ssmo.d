@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Bell,
   Plus,
@@ -11,14 +11,11 @@ import {
   AlertCircle,
   X,
   Search,
-  Upload,
-  Image as ImageIcon
 } from 'lucide-react';
 import { api } from '../../services/api';
 import AnnouncementModal from '../AnnouncementModal';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
-import ImageCropper from '../ui/ImageCropper';
 
 export default function ManageAnnouncements() {
   const [announcements, setAnnouncements] = useState([]);
@@ -28,16 +25,12 @@ export default function ManageAnnouncements() {
   const [searchQuery, setSearchQuery] = useState('');
   const [previewItem, setPreviewItem] = useState(null);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
-  const [cropperFile, setCropperFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef(null);
-
   const [formData, setFormData] = useState({
     title: '',
     link: '',
     content: '',
     category: '',
-    badge: 'NEW',
+    badge: '',
     image_url: '',
     is_pinned: false,
     is_active: true
@@ -68,7 +61,7 @@ export default function ManageAnnouncements() {
       link: '',
       content: '',
       category: '',
-      badge: 'NEW',
+      badge: '',
       image_url: '',
       is_pinned: false,
       is_active: true
@@ -83,7 +76,7 @@ export default function ManageAnnouncements() {
       link: item.link || '',
       content: item.content || '',
       category: item.category || '',
-      badge: item.badge || 'NEW',
+      badge: item.badge || '',
       image_url: item.image_url || item.image_key || '',
       is_pinned: !!item.is_pinned,
       is_active: item.is_active !== 0
@@ -121,31 +114,6 @@ export default function ManageAnnouncements() {
     } catch (err) {
       setFeedback({ type: 'error', message: err.message || 'Operation failed' });
     }
-  };
-
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    e.target.value = '';
-    setCropperFile(file);
-  };
-
-  const handleCropperApply = async (croppedFile) => {
-    setCropperFile(null);
-    setUploading(true);
-    try {
-      const res = await api.uploadFile(croppedFile);
-      setFormData((prev) => ({ ...prev, image_url: res.url }));
-      setFeedback({ type: 'success', message: 'Image uploaded successfully' });
-    } catch (err) {
-      setFeedback({ type: 'error', message: err.message || 'Upload failed' });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleCropperCancel = () => {
-    setCropperFile(null);
   };
 
   const filtered = announcements.filter(
@@ -249,45 +217,8 @@ export default function ManageAnnouncements() {
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
               placeholder="Detailed instructions, dates, eligibility details..."
-              className="w-full px-3.5 py-2.5 bg-dark border border-dark-border rounded-md text-xs text-white placeholder-ink-light-muted focus:outline-none focus:border-accent-light focus:ring-1 focus:ring-accent-light transition-colors resize-y"
+              className="w-full px-3.5 py-2.5 bg-dark border border-dark-border rounded-md text-xs text-white placeholder-ink-light-muted focus:outline-none focus:border-accent-light focus:ring-1 focus:ring-accent-light transition-colors resize-none"
             />
-          </div>
-
-          {/* Image Upload with Cropper */}
-          <div>
-            <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
-              Cover Image (Optional)
-            </label>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="text"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                placeholder="https://... or upload & position a photo"
-                className="flex-1 px-3.5 py-2.5 bg-dark border border-dark-border rounded-md text-xs text-white placeholder-ink-light-muted focus:outline-none focus:border-accent-light focus:ring-1 focus:ring-accent-light transition-colors"
-              />
-              <label className="px-4 py-2 rounded-md bg-dark hover:bg-dark-elevated text-ink-light text-xs font-semibold border border-dark-border cursor-pointer flex items-center justify-center gap-2">
-                <Upload className="w-3.5 h-3.5 text-accent-light" />
-                <span>{uploading ? 'Uploading...' : 'Upload & Position'}</span>
-                <input type="file" onChange={handleFileSelect} className="hidden" accept="image/*" ref={fileInputRef} />
-              </label>
-            </div>
-            {formData.image_url && (
-              <div className="mt-3 relative inline-block">
-                <img
-                  src={formData.image_url}
-                  alt="Preview"
-                  className="h-24 rounded-md border border-dark-border object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => setFormData((prev) => ({ ...prev, image_url: '' }))}
-                  className="absolute -top-2 -right-2 p-1 rounded-full bg-dark border border-dark-border text-rose-400 hover:bg-rose-950 transition-colors"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -316,6 +247,7 @@ export default function ManageAnnouncements() {
                 onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
                 className="w-full px-3 py-2 bg-dark border border-dark-border rounded-md text-xs text-white focus:outline-none focus:border-accent-light"
               >
+                <option value="">Choose...</option>
                 {badges.map((b) => (
                   <option key={b} value={b}>{b}</option>
                 ))}
@@ -485,14 +417,6 @@ export default function ManageAnnouncements() {
         />
       )}
 
-      {/* Image Cropper Modal */}
-      {cropperFile && (
-        <ImageCropper
-          file={cropperFile}
-          onApply={handleCropperApply}
-          onCancel={handleCropperCancel}
-        />
-      )}
     </div>
   );
 }
