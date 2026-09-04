@@ -210,7 +210,7 @@ export default function ManageAnnouncements() {
 
           <div>
             <label className="block text-xs font-semibold text-ink-light-secondary mb-1.5">
-              Full Circular Content (Renders in the modal reader)
+              Full Circular Content
             </label>
             <textarea
               rows={4}
